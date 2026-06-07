@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitor de Consultores — V4</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e0f11;--bg2:#16181c;--bg3:#1e2126;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--text:#e8eaed;--text2:#8b909a;--text3:#555b66;--green:#2dd4a0;--green-bg:rgba(45,212,160,0.08);--amber:#f5a623;--amber-bg:rgba(245,166,35,0.08);--red:#f0645a;--red-bg:rgba(240,100,90,0.08);--blue:#5b9cf6;--blue-bg:rgba(91,156,246,0.08);--accent:#2dd4a0;--radius:10px;--font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;}
+.shell{display:flex;min-height:100vh;}
+.sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:24px 0;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;}
+.logo{padding:0 20px 24px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+.logo-mark{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.1em;margin-bottom:4px;}
+.logo-title{font-size:15px;font-weight:500;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;color:var(--text2);font-size:13px;border-left:2px solid transparent;transition:all .15s;user-select:none;}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,.03);}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(45,212,160,.05);}
+.nav-section{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--text3);padding:16px 20px 6px;text-transform:uppercase;}
+.main{margin-left:220px;flex:1;padding:32px;}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;}
+.page-title{font-size:20px;font-weight:500;margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--text2);}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:500;transition:all .15s;}
+.btn-primary{background:var(--accent);color:#0e0f11;}.btn-primary:hover{background:#25c090;}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border2);}.btn-secondary:hover{background:#262b33;}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);}.btn-ghost:hover{color:var(--text);border-color:var(--border2);}
+.btn-danger{background:var(--red-bg);color:var(--red);border:1px solid rgba(240,100,90,.2);}.btn-danger:hover{background:rgba(240,100,90,.15);}
+.btn-sm{padding:5px 12px;font-size:12px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.score-pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:500;font-family:var(--mono);}
+.score-green{background:var(--green-bg);color:var(--green);}
+.score-amber{background:var(--amber-bg);color:var(--amber);}
+.score-red{background:var(--red-bg);color:var(--red);}
+textarea,input,select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:var(--font);font-size:13px;padding:10px 14px;outline:none;transition:border-color .15s;}
+textarea:focus,input:focus,select:focus{border-color:var(--accent);}
+select option{background:var(--bg3);}
+label{font-size:12px;color:var(--text2);margin-bottom:6px;display:block;}
+.form-row{margin-bottom:16px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.dim-bar-wrap{margin-bottom:10px;}
+.dim-bar-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:5px;}
+.dim-bar-track{height:5px;background:var(--bg3);border-radius:99px;overflow:hidden;}
+.dim-bar-fill{height:5px;border-radius:99px;transition:width .6s ease;}
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(14,15,17,.85);z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+.loading-overlay.show{display:flex;}
+.spinner{width:36px;height:36px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-size:13px;color:var(--text2);font-family:var(--mono);}
+.section{display:none;}.section.active{display:block;}
+.consultor-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:center;gap:14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s;}
+.consultor-card:hover{border-color:var(--border2);}
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:500;font-size:14px;flex-shrink:0;}
+.steps{display:flex;margin-bottom:24px;}
+.step{flex:1;display:flex;align-items:center;gap:8px;padding:10px 16px;font-size:12px;color:var(--text3);border-bottom:2px solid var(--border);transition:all .2s;}
+.step.done{color:var(--green);border-bottom-color:var(--green);}
+.step.active{color:var(--text);border-bottom-color:var(--accent);}
+.step-num{width:20px;height:20px;border-radius:50%;border:1px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:var(--mono);flex-shrink:0;}
+.score-big{font-size:48px;font-weight:300;font-family:var(--mono);line-height:1;}
+.chip{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
+.week-pill{padding:5px 14px;border-radius:99px;border:1px solid var(--border2);font-size:12px;font-family:var(--mono);cursor:pointer;color:var(--text2);background:var(--bg2);transition:all .15s;}
+.week-pill:hover{color:var(--text);}.week-pill.active{background:var(--accent);color:#0e0f11;border-color:var(--accent);font-weight:500;}
+.week-nav{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.result-dim{border:1px solid var(--border);border-radius:8px;margin-bottom:8px;overflow:hidden;}
+.result-dim-header{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg2);cursor:pointer;}
+.result-dim-header:hover{background:#1a1d22;}
+.result-dim-body{display:none;padding:14px 16px;background:var(--bg);border-top:1px solid var(--border);}
+.result-dim-body.open{display:block;}
+.alert-item{display:flex;gap:10px;padding:12px;border-radius:8px;margin-bottom:8px;border:1px solid;}
+.alert-neg{background:var(--red-bg);border-color:rgba(240,100,90,.2);}
+.alert-text{font-size:12px;line-height:1.5;}
+.alert-dim{font-size:10px;font-family:var(--mono);opacity:.6;margin-top:3px;}
+.hist-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.hist-label{font-size:11px;color:var(--text2);width:100px;flex-shrink:0;font-family:var(--mono);}
+.hist-track{flex:1;height:28px;background:var(--bg3);border-radius:4px;position:relative;overflow:hidden;}
+.hist-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding:0 8px;font-size:12px;font-weight:500;font-family:var(--mono);}
+.compare-bar{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.compare-dim-label{font-size:12px;color:var(--text2);width:200px;flex-shrink:0;}
+.compare-bars{flex:1;display:flex;flex-direction:column;gap:3px;}
+.compare-track{height:6px;background:var(--bg3);border-radius:99px;position:relative;}
+.compare-fill{height:6px;border-radius:99px;position:absolute;top:0;left:0;}
+.compare-score{font-size:11px;color:var(--text3);width:50px;text-align:right;font-family:var(--mono);flex-shrink:0;}
+.empty{text-align:center;padding:60px 20px;color:var(--text2);}
+.empty-icon{font-size:36px;margin-bottom:12px;opacity:.4;}
+.empty-title{font-size:15px;font-weight:500;color:var(--text);margin-bottom:6px;}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px 18px;font-size:13px;z-index:200;display:none;align-items:center;gap:10px;}
+.toast.show{display:flex;}
+.toast-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(14,15,17,.88);z-index:150;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:24px;width:480px;max-height:90vh;overflow-y:auto;}
+/* IMPORT AREA */
+.import-area{border:2px dashed var(--border2);border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg3);}
+.import-area:hover,.import-area.drag{border-color:var(--accent);background:rgba(45,212,160,.04);}
+.import-icon{font-size:28px;margin-bottom:10px;opacity:.5;}
+.import-title{font-size:14px;font-weight:500;margin-bottom:4px;}
+.import-sub{font-size:12px;color:var(--text2);}
+/* D9 CHECKLIST */
+.d9-bloco{margin-bottom:16px;}
+.d9-bloco-title{font-size:11px;font-family:var(--mono);color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.d9-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.d9-item:last-child{border-bottom:none;}
+.d9-status{flex-shrink:0;margin-top:2px;}
+.d9-status select{width:52px;padding:2px 4px;font-size:11px;font-family:var(--mono);}
+.d9-label{flex:1;font-size:12px;color:var(--text2);}
+.d9-obs{font-size:11px;color:var(--text3);margin-top:2px;}
+/* SCORE INPUT */
+.dim-score-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.dim-score-row:last-child{border-bottom:none;}
+.dim-score-info{flex:1;}
+.dim-score-name{font-size:13px;font-weight:500;margin-bottom:2px;}
+.dim-score-desc{font-size:11px;color:var(--text3);}
+.dim-score-obs{margin-top:6px;}
+.dim-score-obs textarea{font-size:12px;padding:6px 10px;resize:none;}
+.dim-score-controls{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.dim-score-controls input[type=range]{width:90px;}
+.dim-score-controls input[type=number]{width:52px;text-align:center;font-family:var(--mono);font-size:13px;padding:4px 6px;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:99px;}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Carregando...</div>
+</div>
+<div id="toast" class="toast">
+  <div class="toast-dot" id="toast-dot"></div>
+  <span id="toast-msg"></span>
+</div>
+<div id="modal-delete" class="modal-overlay">
+  <div class="modal-box">
+    <div style="font-size:15px;font-weight:500;margin-bottom:8px;">Confirmar exclusão</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:20px;">Essa avaliação será removida permanentemente.</div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-danger" onclick="confirmarDelete()">Excluir</button>
+      <button class="btn btn-ghost" onclick="fecharModalDelete()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="shell">
+  <nav class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">V4 COMPANY</div>
+      <div class="logo-title">Monitor de Consultores</div>
+    </div>
+    <div class="nav-section">Menu</div>
+    <div class="nav-item active" onclick="showSection('avaliar',this)"><span>✦</span> Nova avaliação</div>
+    <div class="nav-item" onclick="showSection('consultores',this)"><span>◈</span> Consultores</div>
+    <div class="nav-item" onclick="showSection('comparativo',this)"><span>⊞</span> Comparativo</div>
+    <div style="margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);">
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono);">9 dimensões · V4 Squad Saber</div>
+      <div id="status-conexao" style="font-size:11px;margin-top:6px;display:flex;align-items:center;gap:5px;">
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--text3);"></div>
+        <span style="color:var(--text3);">verificando...</span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <!-- ═══ AVALIAR ═══ -->
+    <section id="sec-avaliar" class="section active">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Nova avaliação</div>
+          <div class="page-sub">Cole o resultado da análise do Claude para preencher automaticamente</div>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="step active" id="step1"><div class="step-num">1</div> Identificação</div>
+        <div class="step" id="step2"><div class="step-num">2</div> Importar análise</div>
+        <div class="step" id="step3"><div class="step-num">3</div> Revisar</div>
+        <div class="step" id="step4"><div class="step-num">4</div> Resultado</div>
+      </div>
+
+      <!-- STEP 1: IDENTIFICAÇÃO -->
+      <div id="form-step1">
+        <div class="card" style="max-width:620px;">
+          <div style="font-size:13px;font-weight:500;margin-bottom:16px;">Dados da avaliação</div>
+          <div class="form-grid">
+            <div class="form-row"><label>Consultor</label><input type="text" id="inp-consultor" placeholder="Nome do consultor" /></div>
+            <div class="form-row">
+              <label>Tipo de entrega</label>
+              <select id="inp-entrega">
+                <option value="">Selecione...</option>
+                <option>Kickoff</option>
+                <option>Pesquisa de Mercado</option>
+                <option>Diagnóstico de Vendas</option>
+                <option>Diagnóstico de Mídia Paga</option>
+                <option>Apresentação Final</option>
+                <option>Reunião de Negociação</option>
+                <option>Outra</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-row"><label>Cliente avaliado</label><input type="text" id="inp-cliente" placeholder="Nome do cliente / empresa" /></div>
+            <div class="form-row"><label>Data da reunião</label><input type="date" id="inp-data" /></div>
+          </div>
+          <button class="btn btn-primary" onclick="goStep2()">Continuar →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: IMPORTAR -->
+      <div id="form-step2" style="display:none;">
+        <div class="card" style="max-width:780px;">
+          <div style="font-size:13px;font-weight:500;margin-bottom:4px;">Cole a análise do Claude aqui</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:16px;">Copie toda a resposta do Claude (dimensões d1–d8 + skill d9) e cole abaixo. A página vai preencher tudo automaticamente.</div>
+          <div class="form-row">
+            <textarea id="inp-analise" rows="16" placeholder="Cole aqui o resultado completo da análise...&#10;&#10;Exemplo esperado:&#10;d1: 85&#10;Observação: Tese central clara, progressão lógica bem construída.&#10;&#10;d2: 72&#10;Observação: Checkpoints regulares, mas escuta reativa em alguns momentos.&#10;...&#10;&#10;d9: 69&#10;Observação: Manual de identidade não entregue. Forecast ausente.&#10;&#10;Nota geral: 76&#10;Recomendação: ..."></textarea>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button class="btn btn-primary" onclick="importarAnalise()">✦ Importar e preencher</button>
+            <button class="btn btn-ghost" onclick="goStep1back()">← Voltar</button>
+            <button class="btn btn-ghost btn-sm" onclick="preencherManual()" style="margin-left:auto;">Preencher manualmente</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: REVISAR -->
+      <div id="form-step3" style="display:none;">
+        <div class="card" style="max-width:780px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div>
+              <div style="font-size:13px;font-weight:500;">Revisar e ajustar</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:2px;">Ajuste qualquer nota ou observação antes de salvar</div>
+            </div>
+            <div style="font-size:12px;color:var(--text2);">Média: <span id="media-preview" style="font-family:var(--mono);font-weight:500;color:var(--accent);">—</span></div>
+          </div>
+
+          <!-- D1-D8 -->
+          <div style="font-size:11px;font-family:var(--mono);color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);">Dimensões de comportamento (d1–d8)</div>
+          <div id="dims-review"></div>
+
+          <!-- D9 -->
+          <div style="font-size:11px;font-family:var(--mono);color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border);">d9 · Qualidade técnica da entrega — <span id="d9-entrega-label" style="color:var(--text3);">—</span></div>
+          <div id="d9-checklist"></div>
+          <div class="form-row" style="margin-top:12px;">
+            <label>Nota d9 (calculada automaticamente pelos critérios acima)</label>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <input type="range" min="0" max="100" value="70" id="range-d9" oninput="syncD9('range')" style="flex:1;accent-color:var(--accent);">
+              <input type="number" min="0" max="100" value="70" id="num-d9" oninput="syncD9('num')" style="width:60px;text-align:center;font-family:var(--mono);">
+            </div>
+          </div>
+          <div class="form-row">
+            <label>Observação d9</label>
+            <textarea id="obs-d9" rows="2" placeholder="Principais achados da skill específica da entrega..." style="resize:none;font-size:12px;"></textarea>
+          </div>
+
+          <div class="form-row">
+            <label>Recomendação geral</label>
+            <textarea id="inp-recomendacao" rows="3" placeholder="Principais padrões identificados e o que acompanhar nas próximas semanas..." style="resize:none;"></textarea>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:4px;">
+            <button class="btn btn-primary" onclick="goStep4()">Ver resultado →</button>
+            <button class="btn btn-ghost" onclick="goStep2back()">← Voltar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4: RESULTADO -->
+      <div id="form-step4" style="display:none;">
+        <div style="display:flex;gap:16px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
+          <div><div style="font-size:12px;color:var(--text2);margin-bottom:4px;">Consultor</div><div style="font-size:15px;font-weight:500;" id="res-consultor-name">—</div></div>
+          <div style="width:1px;height:36px;background:var(--border);"></div>
+          <div><div style="font-size:12px;color:var(--text2);margin-bottom:4px;">Entrega</div><div style="font-size:13px;font-weight:500;" id="res-entrega-name">—</div></div>
+          <div style="width:1px;height:36px;background:var(--border);"></div>
+          <div><div style="font-size:12px;color:var(--text2);margin-bottom:4px;">Cliente</div><div style="font-size:13px;" id="res-cliente-name">—</div></div>
+          <div style="width:1px;height:36px;background:var(--border);"></div>
+          <div><div style="font-size:12px;color:var(--text2);margin-bottom:4px;">Data</div><div style="font-size:13px;font-family:var(--mono);" id="res-data-name">—</div></div>
+          <div style="margin-left:auto;display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="goStep3back()">← Editar</button>
+            <button class="btn btn-primary btn-sm" onclick="salvarAvaliacao()">Salvar avaliação</button>
+            <button class="btn btn-secondary btn-sm" onclick="novaAvaliacao()">+ Nova</button>
+          </div>
+        </div>
+
+        <div class="grid2" style="margin-bottom:20px;">
+          <div class="card" style="display:flex;align-items:center;gap:20px;">
+            <div>
+              <div style="font-size:12px;color:var(--text2);margin-bottom:6px;">Nota geral</div>
+              <div class="score-big" id="res-nota-big">—</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:4px;">/100</div>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Por grupo</div>
+              <div id="res-grupos"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div style="font-size:13px;font-weight:500;margin-bottom:12px;">Pontos de atenção</div>
+            <div id="res-alertas"></div>
+          </div>
+        </div>
+
+        <div style="font-size:13px;font-weight:500;margin-bottom:12px;">Por dimensão <span style="font-size:12px;font-weight:400;color:var(--text2);">clique para ver detalhes</span></div>
+        <div id="res-dims"></div>
+        <div class="card" style="margin-top:16px;">
+          <div style="font-size:13px;font-weight:500;margin-bottom:8px;">Recomendação</div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.7;" id="res-recomendacao">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ CONSULTORES ═══ -->
+    <section id="sec-consultores" class="section">
+      <div class="page-header"><div><div class="page-title">Consultores</div><div class="page-sub">Histórico por consultor</div></div></div>
+      <div id="consultores-list"></div>
+      <div id="consultor-detalhe" style="display:none;">
+        <button class="btn btn-ghost btn-sm" onclick="fecharDetalhe()" style="margin-bottom:16px;">← Voltar</button>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;">
+          <div class="avatar" id="det-avatar" style="width:48px;height:48px;font-size:18px;"></div>
+          <div>
+            <div style="font-size:18px;font-weight:500;" id="det-nome"></div>
+            <div style="font-size:13px;color:var(--text2);" id="det-meta"></div>
+          </div>
+          <div style="margin-left:auto;">
+            <div class="score-big" id="det-media" style="font-size:36px;"></div>
+            <div style="font-size:11px;color:var(--text2);text-align:right;">média geral</div>
+          </div>
+        </div>
+        <div class="week-nav" id="det-semanas"></div>
+        <div class="grid2">
+          <div class="card"><div style="font-size:13px;font-weight:500;margin-bottom:14px;">Por dimensão</div><div id="det-dims-bars"></div></div>
+          <div class="card"><div style="font-size:13px;font-weight:500;margin-bottom:14px;">Histórico de notas</div><div id="det-historico"></div></div>
+        </div>
+        <div class="card" style="margin-top:16px;"><div style="font-size:13px;font-weight:500;margin-bottom:12px;">Padrões recorrentes</div><div id="det-padroes"></div></div>
+        <div class="card" style="margin-top:16px;"><div style="font-size:13px;font-weight:500;margin-bottom:12px;">Avaliações</div><div id="det-lista-avaliacoes"></div></div>
+      </div>
+    </section>
+
+    <!-- ═══ COMPARATIVO ═══ -->
+    <section id="sec-comparativo" class="section">
+      <div class="page-header"><div><div class="page-title">Comparativo</div><div class="page-sub">Filtrado por tipo de entrega</div></div></div>
+      <div class="card" style="margin-bottom:16px;"><div style="font-size:13px;font-weight:500;margin-bottom:14px;">Ranking</div><div id="comp-ranking"></div></div>
+      <div class="card"><div style="font-size:13px;font-weight:500;margin-bottom:14px;">Por dimensão</div><div id="comp-dims"></div></div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════
+const API_URL = 'https://script.google.com/a/macros/v4company.com/s/AKfycbwPhx5PGe_GY1FVhi_O9JJCRYTbU8KYG4vTx6ddbepdLBAZwfQX1fYR8hUEO6Nn1ep4pw/exec';
+
+const DIMS = [
+  {id:'d1',name:'Controle narrativo',desc:'Tese central, progressão lógica, reencadramento do negativo',group:1,groupName:'Condução',color:'#2dd4a0'},
+  {id:'d2',name:'Escuta ativa e equilíbrio',desc:'Checkpoints, incorporação do cliente, didática preventiva',group:1,groupName:'Condução',color:'#2dd4a0'},
+  {id:'d3',name:'Gestão de objeções',desc:'Validar antes de redirecionar, resolução ao vivo, autoridade sob pressão',group:1,groupName:'Condução',color:'#2dd4a0'},
+  {id:'d4',name:'Tradução técnica → negócio',desc:'Personalização dos dados, consequência financeira, continuidade',group:2,groupName:'Conversão',color:'#5b9cf6'},
+  {id:'d5',name:'Arquitetura de urgência',desc:'Custo da inação, momentum, roadmap como âncora temporal',group:2,groupName:'Conversão',color:'#5b9cf6'},
+  {id:'d6',name:'Arquitetura de conversão',desc:'Solução como consequência, timing da proposta, posicionamento do preço',group:2,groupName:'Conversão',color:'#5b9cf6'},
+  {id:'d7',name:'Construção de confiança',desc:'Fonte da autoridade, consistência entre entregas, presença em tensão',group:2,groupName:'Conversão',color:'#5b9cf6'},
+  {id:'d8',name:'Domínio do negócio do cliente',desc:'Leitura do modelo, calibração ao setor, linguagem do cliente',group:3,groupName:'Técnico',color:'#a78bfa'},
+  {id:'d9',name:'Qualidade técnica da entrega',desc:'Critérios da skill específica da entrega avaliada',group:3,groupName:'Técnico',color:'#a78bfa'},
+];
+
+const D9_SKILLS = {
+  'Kickoff': [
+    {bloco:'Entendimento do negócio',items:[{id:'1.1',label:'Modelo de negócio mapeado (como vende, para quem, ticket médio)'},{id:'1.2',label:'Histórico de marketing entendido (o que funcionou e o que não)'},{id:'1.3',label:'Dores e gargalos atuais identificados'}]},
+    {bloco:'Dados e acessos',items:[{id:'2.1',label:'Compromisso do cliente para envio dos acessos necessários'},{id:'2.2',label:'Decisores e pessoas-chave identificados'}]},
+    {bloco:'Cobertura das entregas futuras',items:[{id:'3.1',label:'Insumos para Pesquisa de Mercado coletados (mercado, concorrentes, público)'},{id:'3.2',label:'Insumos para Diagnóstico de Mídia Paga coletados (histórico, verbas, resultados)'},{id:'3.3',label:'Insumos para Diagnóstico de Criativos coletados (identidade, tom de voz, referências)'},{id:'3.4',label:'Insumos para Diagnóstico de Vendas coletados (funil, objeções, time)'}]},
+    {bloco:'Clareza do produto',items:[{id:'4.1',label:'Cliente sabe onde está no processo e o que vem a seguir'}]},
+  ],
+  'Pesquisa de Mercado': [
+    {bloco:'Sizing de mercado',items:[{id:'1.1',label:'TAM/SAM/SOM apresentado com valores monetários'},{id:'1.2',label:'Fontes dos dados citadas (mínimo 3)'},{id:'1.3',label:'Números coerentes com o porte e capacidade do cliente'},{id:'1.4',label:'Estudo disponibilizado ao cliente para leitura posterior'}]},
+    {bloco:'Estudo de concorrentes',items:[{id:'2.1',label:'3 a 5 concorrentes principais mapeados'},{id:'2.2',label:'Tabela comparativa com Proposta de Valor, Diferenciais e Fraquezas'},{id:'2.3',label:'Oportunidade clara de diferenciação identificada e destacada'}]},
+    {bloco:'Persona (B2C)',items:[{id:'3A.1',label:'Persona com nome, dados demográficos e perfil psicográfico'},{id:'3A.2',label:'Motivos de contratação e desistência (emocional e racional)'},{id:'3A.3',label:'Lista de objeções de compra mapeada'}]},
+    {bloco:'ICP + Comitê de Compra (B2B)',items:[{id:'3B.1',label:'ICP com filtros claros (setor, tamanho, localização, dor específica)'},{id:'3B.2',label:'Comitê de compra mapeado (quem decide, influencia, usa)'},{id:'3B.3',label:'Motivos de contratação e desistência com viés B2B'}]},
+    {bloco:'Jobs To Be Done',items:[{id:'4.1',label:'3 a 5 Jobs na estrutura correta (Quando X, quero Y, para Z)'},{id:'4.2',label:'Jobs cobrem aspectos funcionais E emocionais'},{id:'4.3',label:'Jobs específicos do cliente — não genéricos'}]},
+    {bloco:'Qualidade da apresentação',items:[{id:'5.1',label:'Insights não óbvios — visão externa, não só confirmação do que o cliente já sabia'},{id:'5.2',label:'Cliente saiu entendendo o mercado e reconhecendo o público'}]},
+  ],
+  'Diagnóstico de Vendas': [
+    {bloco:'Diagnóstico consultivo (sem processo formado)',items:[{id:'1B.1',label:'Vazamentos de receita mapeados com o que estava disponível'},{id:'1B.2',label:'Estrutura comercial ideal apresentada para o porte do cliente'},{id:'1B.3',label:'Ponto de partida factível definido — sem complexidade excessiva'},{id:'1B.4',label:'Cliente entendeu por que a ausência de processo está custando receita'}]},
+    {bloco:'Cliente Oculto',items:[{id:'2.1',label:'Teste realizado em pelo menos 2 canais (WhatsApp, Instagram, site)'},{id:'2.2',label:'Tempo de resposta registrado com evidência concreta'},{id:'2.3',label:'Qualidade do atendimento avaliada com evidência — não só impressão'}]},
+    {bloco:'Plano de ação comercial',items:[{id:'3.1',label:'Pelo menos 3 ações corretivas de alto impacto definidas'},{id:'3.2',label:'Correção ou implantação de CRM incluída no plano'},{id:'3.3',label:'Ações validadas como factíveis para o porte e maturidade do cliente'},{id:'3.4',label:'5W2H com métricas de sucesso para cada ação'}]},
+    {bloco:'Qualidade da apresentação',items:[{id:'4.1',label:'Diagnóstico sem gerar defensiva — posicionado como ajuda, não auditoria'},{id:'4.2',label:'Cliente saiu sabendo o que mudar no comercial na semana seguinte'}]},
+  ],
+  'Diagnóstico de Mídia Paga': [
+    {bloco:'Direcionamento consultivo (sem contas ativas)',items:[{id:'1C.1',label:'Benchmarks de mercado apresentados — como concorrentes estão estruturados'},{id:'1C.2',label:'Canal recomendado com justificativa clara (Google = intenção, Meta = atenção)'},{id:'1C.3',label:'Lógica explicada ao cliente de forma que ele entenda por onde começar'},{id:'1C.4',label:'Estrutura mínima recomendada para começar (objetivo, público, verba)'}]},
+    {bloco:'Eficiência de investimentos',items:[{id:'2.2',label:'Gargalo principal do funil identificado com evidência'},{id:'2.3',label:'Recomendação clara de alocação de verba por canal'}]},
+    {bloco:'Plano de ação',items:[{id:'3.1',label:'Lista de recomendações táticas e estratégicas criada'},{id:'3.2',label:'5W2H com pelo menos 5 ações prioritárias'},{id:'3.3',label:'Ações com prazos e responsáveis definidos'},{id:'3.4',label:'Ações específicas — sem genéricos como "melhorar o site"'}]},
+    {bloco:'Qualidade da apresentação',items:[{id:'4.1',label:'Cliente entendeu o diagnóstico sem precisar perguntar "como?"'},{id:'4.2',label:'Cliente validou ou aprovou o plano ao final da reunião'}]},
+  ],
+  'Apresentação Final': [
+    {bloco:'Escopo contratual (peso dobrado)',items:[{id:'1.1',label:'3 criativos para anúncio finalizados e apresentados'},{id:'1.2',label:'Landing Page (wireframe) com copy real — desktop e mobile'},{id:'1.3',label:'Manual de copy entregue'},{id:'1.4',label:'Manual de Identidade Visual (MIV) entregue'},{id:'1.5',label:'Plano de ação detalhado apresentado'},{id:'1.6',label:'Forecast/Projeção de 3 meses com cenários (pessimista, realista, otimista)'}]},
+    {bloco:'Análises consolidadas',items:[{id:'2.1',label:'Auditoria de mídia paga referenciada com achados principais'},{id:'2.2',label:'Diagnóstico de criativos referenciado com direcionamentos aplicados'},{id:'2.3',label:'Diagnóstico de canais digitais referenciado'},{id:'2.4',label:'Processo comercial referenciado com ações corretivas'},{id:'2.5',label:'Estudo competitivo referenciado no plano'}]},
+    {bloco:'Qualidade do plano estratégico',items:[{id:'3.1',label:'Mapa estratégico: onde estava → o que foi descoberto → para onde vai'},{id:'3.2',label:'Plano cobre os 5 pilares: aquisição, engajamento, monetização, retenção, conteúdo'},{id:'3.3',label:'Plano alinhado à maturidade e orçamento real do cliente'},{id:'3.4',label:'Gargalo principal identificado e priorizado'}]},
+    {bloco:'Qualidade da apresentação final',items:[{id:'4.1',label:'Todos os decisores presentes na reunião'},{id:'4.2',label:'Forecast validado pelo cliente'},{id:'4.3',label:'Cliente saiu sabendo o que será feito na próxima semana'},{id:'4.4',label:'Data de início das campanhas (Go Live) definida'},{id:'4.5',label:'Pasta com todos os arquivos enviada ou comprometida com prazo'},{id:'4.6',label:'NPS enviado ao cliente — OBRIGATÓRIO'}]},
+  ],
+};
+
+const COLORS=['#2dd4a0','#5b9cf6','#a78bfa','#f5a623','#f0645a'];
+let DB={avaliacoes:[]};
+let currentEval=null;
+let deleteTargetId=null;
+
+// ══════════════════════════════════════════════
+// DB
+// ══════════════════════════════════════════════
+async function carregarDB(){
+  try{
+    const r=await fetch(API_URL+'?action=getAll');
+    const d=await r.json();
+    if(d.avaliacoes) DB=d;
+    setStatus(true);
+  }catch(e){
+    DB=JSON.parse(localStorage.getItem('v4_monitor')||'{"avaliacoes":[]}');
+    setStatus(false);
+  }
+}
+async function salvarNoDB(av){
+  const existe=DB.avaliacoes.findIndex(a=>a.id===av.id);
+  if(existe>=0) DB.avaliacoes[existe]=av; else DB.avaliacoes.push(av);
+  localStorage.setItem('v4_monitor',JSON.stringify(DB));
+  try{ await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'save',avaliacao:av})}); }catch(e){}
+}
+async function deletarDoDB(id){
+  DB.avaliacoes=DB.avaliacoes.filter(a=>a.id!==id);
+  localStorage.setItem('v4_monitor',JSON.stringify(DB));
+  try{ await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'delete',id})}); }catch(e){}
+}
+function setStatus(online){
+  const el=document.getElementById('status-conexao');
+  el.innerHTML=online
+    ?'<div style="width:6px;height:6px;border-radius:50%;background:var(--green);"></div><span style="color:var(--green);">conectado ao Sheets</span>'
+    :'<div style="width:6px;height:6px;border-radius:50%;background:var(--amber);"></div><span style="color:var(--amber);">modo offline</span>';
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+async function init(){
+  showLoading('Carregando dados...');
+  document.getElementById('inp-data').value=new Date().toISOString().split('T')[0];
+  await carregarDB();
+  hideLoading();
+}
+init();
+
+// ══════════════════════════════════════════════
+// NAV
+// ══════════════════════════════════════════════
+function showSection(id,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  el.classList.add('active');
+  if(id==='consultores') carregarDB().then(renderConsultoresList);
+  if(id==='comparativo') carregarDB().then(renderComparativo);
+}
+
+// ══════════════════════════════════════════════
+// STEPS
+// ══════════════════════════════════════════════
+function setStep(n){
+  for(let i=1;i<=4;i++){
+    const el=document.getElementById('step'+i);
+    el.classList.remove('active','done');
+    if(i<n) el.classList.add('done');
+    else if(i===n) el.classList.add('active');
+  }
+}
+function goStep1back(){
+  hide(['form-step2']);show(['form-step1']);setStep(1);
+}
+function goStep2back(){
+  hide(['form-step3']);show(['form-step2']);setStep(2);
+}
+function goStep3back(){
+  hide(['form-step4']);show(['form-step3']);setStep(3);
+}
+function goStep2(){
+  const nome=document.getElementById('inp-consultor').value.trim();
+  const entrega=document.getElementById('inp-entrega').value;
+  if(!nome||!entrega){showToast('Preencha o consultor e o tipo de entrega.','red');return;}
+  hide(['form-step1']);show(['form-step2']);setStep(2);
+}
+function goStep4(){
+  const scores=getScoresFromReview();
+  const nota=Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/9);
+  const obs={};
+  DIMS.forEach(d=>{
+    if(d.id==='d9'){
+      obs[d.id]={analise:(document.getElementById('obs-d9')||{}).value||'',plano:''};
+    } else {
+      const a=(document.getElementById('analise-'+d.id)||{}).value||'';
+      const p=(document.getElementById('plano-'+d.id)||{}).value||'';
+      obs[d.id]={analise:a,plano:p};
+    }
+  });
+  const nome=document.getElementById('inp-consultor').value.trim();
+  const entrega=document.getElementById('inp-entrega').value;
+  const cliente=document.getElementById('inp-cliente').value.trim();
+  const di=document.getElementById('inp-data').value;
+  const data=di?new Date(di+'T12:00:00').toLocaleDateString('pt-BR'):new Date().toLocaleDateString('pt-BR');
+  const recomendacao=document.getElementById('inp-recomendacao').value.trim();
+  const d9_itens=getD9Itens();
+
+  currentEval={id:currentEval?.id||Date.now(),consultor:nome,entrega,cliente,data,scores,observacoes:obs,recomendacao,nota,d9_itens};
+  hide(['form-step3']);show(['form-step4']);setStep(4);
+  renderResultado(currentEval);
+}
+function hide(ids){ids.forEach(id=>document.getElementById(id).style.display='none');}
+function show(ids){ids.forEach(id=>document.getElementById(id).style.display='block');}
+function preencherManual(){
+  const entrega=document.getElementById('inp-entrega').value;
+  renderReview({},entrega);
+  hide(['form-step2']);show(['form-step3']);setStep(3);
+}
+
+// ══════════════════════════════════════════════
+// IMPORTAR ANÁLISE
+// ══════════════════════════════════════════════
+function importarAnalise(){
+  const texto=document.getElementById('inp-analise').value.trim();
+  if(texto.length<30){showToast('Cole o texto da análise do Claude.','red');return;}
+  const entrega=document.getElementById('inp-entrega').value;
+  const scores=parseScores(texto);
+  const obs=parseObs(texto);
+  const rec=parseRecomendacao(texto);
+  const d9Itens=parseD9Itens(texto);
+  document.getElementById('inp-recomendacao').value=rec;
+  renderReview(scores,entrega,obs,d9Itens);
+  hide(['form-step2']);show(['form-step3']);setStep(3);
+}
+
+function parseScores(txt){
+  const scores={};
+  DIMS.forEach(d=>{
+    // Busca padrão: d1: 85 ou **d1** 85 ou d1 — 85
+    const re=new RegExp(d.id+'[^\\d]*(\\d{1,3})','i');
+    const m=txt.match(re);
+    if(m) scores[d.id]=Math.min(100,Math.max(0,parseInt(m[1])));
+    else scores[d.id]=70;
+  });
+  return scores;
+}
+
+function parseObs(txt){
+  const obs={};
+  DIMS.forEach(d=>{
+    obs[d.id]={analise:'',plano:''};
+    const re=new RegExp(d.id+'[^\\d]*\\d{1,3}[^\\n]*\\n([\\s\\S]*?)(?=\\nd\\d|$)','i');
+    const m=txt.match(re);
+    if(!m) return;
+    const bloco=m[1];
+    const reA=/[aá]n[aá]lise[:\s]+([\s\S]*?)(?=plano de a[çc][aã]o|$)/i;
+    const mA=bloco.match(reA);
+    if(mA) obs[d.id].analise=mA[1].replace(/\*+/g,'').trim();
+    const reP=/plano de a[çc][aã]o[:\s]+([\s\S]*?)$/i;
+    const mP=bloco.match(reP);
+    if(mP) obs[d.id].plano=mP[1].replace(/\*+/g,'').trim();
+    if(!obs[d.id].analise&&!obs[d.id].plano){
+      const linhas=bloco.split('\n').map(l=>l.trim()).filter(l=>l&&!l.match(/^d\d/i)&&l.length>5);
+      obs[d.id].analise=linhas.join(' ').replace(/\*+/g,'').trim();
+    }
+  });
+  return obs;
+}
+
+function parseRecomendacao(txt){
+  const re=/recomenda[çc][aã]o[:\s]*([\s\S]*?)(?:\n\n|$)/i;
+  const m=txt.match(re);
+  return m?m[1].replace(/\*+/g,'').trim():'';
+}
+
+function parseD9Itens(txt){
+  // Extrai bloco após d9: nota até próxima dimensão ou Recomendação
+  const reBloco=/\nd9[:\s]*\d{1,3}[^\n]*\n([\s\S]*?)(?=\nd[1-8][:\s]|\nRecomenda|$)/i;
+  const mBloco=txt.match(reBloco);
+  if(!mBloco) return {};
+  const bloco=mBloco[1];
+  const itens={};
+  // Captura padrões como: 1.1: ✅  ou  3B.1: ❌  ou  3A.2: ⚠️
+  const reItem=/([\dA-Za-z]+\.[\dA-Za-z]+)\s*:\s*(✅|⚠️|❌)/g;
+  let m;
+  while((m=reItem.exec(bloco))!==null){
+    const id=m[1];
+    const icon=m[2];
+    const valor=icon==='✅'?1:icon==='⚠️'?0.5:0;
+    // Guardar em múltiplos formatos para compatibilidade com os IDs do checklist
+    itens[id]=valor;
+    itens[id.toLowerCase()]=valor;
+    itens[id.toUpperCase()]=valor;
+  }
+  return itens;
+}
+
+// ══════════════════════════════════════════════
+// RENDER REVIEW
+// ══════════════════════════════════════════════
+function renderReview(scores,entrega,obs={},d9Itens={}){
+  // D1-D8
+  const g=[
+    {name:'Condução',ids:['d1','d2','d3'],color:'#2dd4a0'},
+    {name:'Conversão',ids:['d4','d5','d6','d7'],color:'#5b9cf6'},
+    {name:'Domínio do negócio',ids:['d8'],color:'#a78bfa'},
+  ];
+  let html='';
+  g.forEach(gr=>{
+    html+=`<div style="margin-bottom:16px;"><div style="font-size:11px;font-family:var(--mono);color:${gr.color};letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);">${gr.name}</div>`;
+    gr.ids.forEach(id=>{
+      const d=DIMS.find(x=>x.id===id);
+      const sc=scores[id]||70;
+      const obsObj=obs[id]||{};
+      const o_analise=typeof obsObj==='object'?obsObj.analise||'':obsObj;
+      const o_plano=typeof obsObj==='object'?(obsObj.plano||''):'';
+      html+=`<div class="dim-score-row">
+        <div class="dim-score-info">
+          <div class="dim-score-name" style="color:${d.color}">${d.name}</div>
+          <div class="dim-score-desc">${d.desc}</div>
+          <div class="dim-score-obs" style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+            <textarea id="analise-${id}" rows="2" placeholder="Análise: o que foi observado na reunião..." style="font-size:12px;padding:6px 10px;resize:none;border-left:2px solid ${d.color};">${o_analise}</textarea>
+            <textarea id="plano-${id}" rows="2" placeholder="Plano de ação: o que o consultor deve fazer para melhorar..." style="font-size:12px;padding:6px 10px;resize:none;border-left:2px solid var(--amber);">${o_plano}</textarea>
+          </div>
+        </div>
+        <div class="dim-score-controls">
+          <input type="range" min="0" max="100" value="${sc}" id="range-${id}" oninput="syncDim('${id}','range')" style="accent-color:${d.color};">
+          <input type="number" min="0" max="100" value="${sc}" id="num-${id}" oninput="syncDim('${id}','num')">
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  document.getElementById('dims-review').innerHTML=html;
+
+  // D9 label e checklist
+  document.getElementById('d9-entrega-label').textContent=entrega||'—';
+  const _d9obs=obs['d9']||{};
+  const _d9txt=typeof _d9obs==='object'?(_d9obs.analise||''):(_d9obs||'');
+  renderD9Checklist(entrega,scores['d9']||70,_d9txt,d9Itens);
+  atualizarMedia();
+}
+
+function renderD9Checklist(entrega,sc,obsVal,itensPreenchidos={}){
+  console.log('[D9] itensPreenchidos recebidos:', JSON.stringify(itensPreenchidos));
+  const skill=D9_SKILLS[entrega];
+  document.getElementById('range-d9').value=sc;
+  document.getElementById('num-d9').value=sc;
+  document.getElementById('obs-d9').value=obsVal;
+  if(!skill){
+    document.getElementById('d9-checklist').innerHTML=`<div style="font-size:12px;color:var(--text2);padding:12px 0;">Não há skill específica para "${entrega}". Ajuste a nota manualmente acima.</div>`;
+    return;
+  }
+  let html='';
+  skill.forEach(bloco=>{
+    html+=`<div class="d9-bloco"><div class="d9-bloco-title">${bloco.bloco}</div>`;
+    bloco.items.forEach(item=>{
+      const _pid=item.id;
+      console.log('[D9 item]', _pid, 'em itens:', itensPreenchidos[_pid]);
+      const preVal=itensPreenchidos[_pid]!==undefined?itensPreenchidos[_pid]:
+        itensPreenchidos[_pid.toUpperCase()]!==undefined?itensPreenchidos[_pid.toUpperCase()]:
+        itensPreenchidos[_pid.toLowerCase()]!==undefined?itensPreenchidos[_pid.toLowerCase()]:null;
+      const sel1=preVal===1?'selected':'';
+      const sel05=preVal===0.5?'selected':'';
+      const sel0=(preVal===0||preVal===null)?'selected':'';
+      html+=`<div class="d9-item">
+        <div class="d9-status">
+          <select id="d9-${item.id}" onchange="calcD9Auto()">
+            <option value="1" ${sel1}>✅</option>
+            <option value="0.5" ${sel05}>⚠️</option>
+            <option value="0" ${sel0}>❌</option>
+          </select>
+        </div>
+        <div class="d9-label">${item.id} — ${item.label}</div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  document.getElementById('d9-checklist').innerHTML=html;
+  // Recalcular nota d9 automaticamente após preencher
+  if(Object.keys(itensPreenchidos).length>0) setTimeout(calcD9Auto,50);
+}
+
+function calcD9Auto(){
+  const entrega=document.getElementById('inp-entrega').value;
+  const skill=D9_SKILLS[entrega];
+  if(!skill) return;
+  let total=0,max=0;
+  skill.forEach(bloco=>{
+    bloco.items.forEach(item=>{
+      const el=document.getElementById('d9-'+item.id);
+      if(el){
+        // Peso dobrado para bloco de escopo contratual (bloco 1 da Apresentação Final)
+        const peso=(entrega==='Apresentação Final'&&bloco.bloco.includes('contratual'))?2:1;
+        total+=parseFloat(el.value)*peso;
+        max+=1*peso;
+      }
+    });
+  });
+  const nota=max>0?Math.round((total/max)*100):70;
+  document.getElementById('range-d9').value=nota;
+  document.getElementById('num-d9').value=nota;
+  atualizarMedia();
+}
+
+function getD9Itens(){
+  const entrega=document.getElementById('inp-entrega').value;
+  const skill=D9_SKILLS[entrega];
+  if(!skill) return {};
+  const itens={};
+  skill.forEach(bloco=>{
+    bloco.items.forEach(item=>{
+      const el=document.getElementById('d9-'+item.id);
+      if(el) itens[item.id]={label:item.label,valor:parseFloat(el.value)};
+    });
+  });
+  return itens;
+}
+
+function syncDim(id,from){
+  if(from==='range') document.getElementById('num-'+id).value=document.getElementById('range-'+id).value;
+  else{
+    let v=Math.min(100,Math.max(0,parseInt(document.getElementById('num-'+id).value)||0));
+    document.getElementById('num-'+id).value=v;
+    document.getElementById('range-'+id).value=v;
+  }
+  atualizarMedia();
+}
+function syncD9(from){
+  if(from==='range') document.getElementById('num-d9').value=document.getElementById('range-d9').value;
+  else{
+    let v=Math.min(100,Math.max(0,parseInt(document.getElementById('num-d9').value)||0));
+    document.getElementById('num-d9').value=v;
+    document.getElementById('range-d9').value=v;
+  }
+  atualizarMedia();
+}
+function atualizarMedia(){
+  const scores=getScoresFromReview();
+  const media=Math.round(Object.values(scores).reduce((a,b)=>a+b,0)/9);
+  const el=document.getElementById('media-preview');
+  if(el){el.textContent=media+'/100';el.style.color=scoreColor(media);}
+}
+function getScoresFromReview(){
+  const s={};
+  DIMS.forEach(d=>{
+    const id=d.id==='d9'?'d9':d.id;
+    s[d.id]=parseInt(document.getElementById('num-'+id)?.value)||70;
+  });
+  return s;
+}
+
+// ══════════════════════════════════════════════
+// RESULTADO
+// ══════════════════════════════════════════════
+function renderResultado(ev){
+  document.getElementById('res-consultor-name').textContent=ev.consultor;
+  document.getElementById('res-entrega-name').textContent=ev.entrega||'—';
+  document.getElementById('res-cliente-name').textContent=ev.cliente||'—';
+  document.getElementById('res-data-name').textContent=ev.data||'—';
+  const notaEl=document.getElementById('res-nota-big');
+  notaEl.textContent=ev.nota;notaEl.style.color=scoreColor(ev.nota);
+
+  const grupos=[
+    {name:'Condução',ids:['d1','d2','d3'],color:'#2dd4a0'},
+    {name:'Conversão',ids:['d4','d5','d6','d7'],color:'#5b9cf6'},
+    {name:'Técnico',ids:['d8','d9'],color:'#a78bfa'},
+  ];
+  document.getElementById('res-grupos').innerHTML=grupos.map(g=>{
+    const avg=Math.round(g.ids.reduce((s,id)=>s+(ev.scores[id]||0),0)/g.ids.length);
+    return`<div class="dim-bar-wrap"><div class="dim-bar-label"><span style="color:${g.color}">${g.name}</span><span style="font-family:var(--mono);color:${scoreColor(avg)}">${avg}</span></div><div class="dim-bar-track"><div class="dim-bar-fill" style="width:${avg}%;background:${g.color};opacity:.7;"></div></div></div>`;
+  }).join('');
+
+  const alertas=DIMS.filter(d=>(ev.scores[d.id]||0)<60).sort((a,b)=>(ev.scores[a.id]||0)-(ev.scores[b.id]||0));
+  document.getElementById('res-alertas').innerHTML=alertas.length
+    ?alertas.slice(0,5).map(d=>`<div class="alert-item alert-neg"><div style="color:var(--red);flex-shrink:0;">▲</div><div><div class="alert-text">Nota ${ev.scores[d.id]} — abaixo do esperado</div><div class="alert-dim">${d.name}</div></div></div>`).join('')
+    :'<div style="font-size:13px;color:var(--text2);">Nenhum ponto crítico.</div>';
+
+  document.getElementById('res-dims').innerHTML=DIMS.map((d,i)=>{
+    const sc=ev.scores[d.id]||0;
+    let _obsRaw=(ev.observacoes||{})[d.id]||{};
+    if(typeof _obsRaw==='string'){try{_obsRaw=JSON.parse(_obsRaw);}catch(e){_obsRaw={analise:_obsRaw,plano:''};}}
+    const analise=typeof _obsRaw==='object'?(_obsRaw.analise||''):(_obsRaw||'');
+    const plano=typeof _obsRaw==='object'?(_obsRaw.plano||''):'';
+
+    // Bloco análise + plano (igual para d1-d8, e também em d9 se tiver texto)
+    const blocoAnalise=analise?`<div style="margin-bottom:10px;">
+      <div style="font-size:10px;font-family:var(--mono);color:${d.color};letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">Análise</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;border-left:2px solid ${d.color};padding-left:10px;">${analise}</div>
+    </div>`:'';
+    const blocoPlano=plano?`<div style="margin-bottom:10px;">
+      <div style="font-size:10px;font-family:var(--mono);color:var(--amber);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">Plano de ação</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;border-left:2px solid var(--amber);padding-left:10px;">${plano}</div>
+    </div>`:'';
+
+    // Checklist d9 (skill específica da entrega)
+    let blocoD9='';
+    if(d.id==='d9'){
+      const skill=D9_SKILLS[ev.entrega];
+      const itens=ev.d9_itens||{};
+      if(skill&&Object.keys(itens).length>0){
+        blocoD9=skill.map(bloco=>{
+          const itemsHtml=bloco.items.map(item=>{
+            const val=itens[item.id]?.valor;
+            const icon=val===1?'✅':val===0.5?'⚠️':'❌';
+            const cor=val===1?'var(--green)':val===0.5?'var(--amber)':'var(--red)';
+            return`<div style="display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--border);">
+              <span style="flex-shrink:0;font-size:13px;">${icon}</span>
+              <span style="font-size:12px;color:var(--text2);">${item.id} — ${item.label}</span>
+            </div>`;
+          }).join('');
+          return`<div style="margin-bottom:12px;">
+            <div style="font-size:10px;font-family:var(--mono);color:var(--accent);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border);">${bloco.bloco}</div>
+            ${itemsHtml}
+          </div>`;
+        }).join('');
+      } else if(skill){
+        blocoD9='<div style="font-size:12px;color:var(--text3);margin-bottom:8px;">Checklist não preenchido — use a aba de revisão para marcar os critérios.</div>';
+      }
+    }
+
+    const semConteudo=d.id!=='d9'&&!analise&&!plano;
+    return`<div class="result-dim">
+      <div class="result-dim-header" onclick="toggleDim(${i})">
+        <div style="width:8px;height:8px;border-radius:50%;background:${d.color};flex-shrink:0;"></div>
+        <div style="flex:1;font-size:13px;">${i+1}. ${d.name}</div>
+        <div class="chip" style="margin-right:8px;font-size:10px;color:var(--text3);">${d.groupName}</div>
+        <div class="score-pill ${scorePillClass(sc)}" style="margin-right:8px;">${sc}</div>
+        <span style="color:var(--text3);font-size:12px;" id="chev-dim-${i}">▼</span>
+      </div>
+      <div class="result-dim-body" id="dim-body-${i}">
+        ${blocoAnalise}
+        ${blocoPlano}
+        ${blocoD9}
+        ${semConteudo?'<div style="font-size:12px;color:var(--text3);">Sem observações registradas.</div>':''}
+        <div class="dim-bar-track" style="margin-top:8px;"><div class="dim-bar-fill" style="width:${sc}%;background:${d.color};opacity:.6;height:5px;"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('res-recomendacao').textContent=ev.recomendacao||'—';
+}
+function toggleAvBody(id){
+  const el=document.getElementById(id);
+  const chev=document.getElementById('chev-'+id);
+  if(!el) return;
+  const open=el.style.display==='none';
+  el.style.display=open?'block':'none';
+  if(chev) chev.textContent=open?'▲':'▼';
+}
+
+function toggleDim(i){
+  const b=document.getElementById('dim-body-'+i),c=document.getElementById('chev-dim-'+i);
+  const o=b.classList.toggle('open');c.textContent=o?'▲':'▼';
+}
+
+async function salvarAvaliacao(){
+  if(!currentEval) return;
+  showLoading('Salvando...');
+  await salvarNoDB(currentEval);
+  hideLoading();
+  showToast('Avaliação salva!','green');
+}
+function novaAvaliacao(){
+  currentEval=null;
+  ['form-step2','form-step3','form-step4'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('form-step1').style.display='block';
+  document.getElementById('inp-consultor').value='';
+  document.getElementById('inp-entrega').value='';
+  document.getElementById('inp-cliente').value='';
+  document.getElementById('inp-analise').value='';
+  document.getElementById('inp-data').value=new Date().toISOString().split('T')[0];
+  setStep(1);
+}
+
+// ══════════════════════════════════════════════
+// CONSULTORES
+// ══════════════════════════════════════════════
+function getConsultores(){
+  const map={};
+  DB.avaliacoes.forEach(a=>{if(!map[a.consultor])map[a.consultor]={nome:a.consultor,avaliacoes:[]};map[a.consultor].avaliacoes.push(a);});
+  return Object.values(map);
+}
+function renderConsultoresList(){
+  const detalhe=document.getElementById('consultor-detalhe');
+  const lista=document.getElementById('consultores-list');
+  detalhe.style.display='none';lista.style.display='block';
+  const consultores=getConsultores();
+  if(!consultores.length){lista.innerHTML=`<div class="empty"><div class="empty-icon">◈</div><div class="empty-title">Nenhum consultor avaliado ainda</div></div>`;return;}
+  lista.innerHTML=consultores.map((c,ci)=>{
+    const color=COLORS[ci%COLORS.length];
+    const initials=c.nome.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const media=Math.round(c.avaliacoes.reduce((s,a)=>s+a.nota,0)/c.avaliacoes.length);
+    const tipos=[...new Set(c.avaliacoes.map(a=>a.entrega).filter(Boolean))];
+    return`<div class="consultor-card" onclick="abrirDetalhe('${c.nome}')">
+      <div class="avatar" style="background:${color}22;color:${color};">${initials}</div>
+      <div style="flex:1;"><div style="font-weight:500;font-size:14px;margin-bottom:2px;">${c.nome}</div><div style="font-size:12px;color:var(--text2);">${c.avaliacoes.length} avaliação(ões) · ${tipos.join(' · ')}</div></div>
+      <div class="score-pill ${scorePillClass(media)}">${media}/100</div>
+    </div>`;
+  }).join('');
+}
+function abrirDetalhe(nome){
+  document.getElementById('consultores-list').style.display='none';
+  const detalhe=document.getElementById('consultor-detalhe');detalhe.style.display='block';
+  const consultores=getConsultores();
+  const ci=consultores.findIndex(c=>c.nome===nome);
+  const c=consultores[ci];
+  const color=COLORS[ci%COLORS.length];
+  const initials=nome.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const media=Math.round(c.avaliacoes.reduce((s,a)=>s+a.nota,0)/c.avaliacoes.length);
+  document.getElementById('det-avatar').textContent=initials;
+  document.getElementById('det-avatar').style.cssText=`width:48px;height:48px;font-size:18px;background:${color}22;color:${color};`;
+  document.getElementById('det-nome').textContent=nome;
+  document.getElementById('det-meta').textContent=`${c.avaliacoes.length} avaliação(ões) · ${[...new Set(c.avaliacoes.map(a=>a.entrega).filter(Boolean))].join(', ')}`;
+  document.getElementById('det-media').textContent=media;
+  document.getElementById('det-media').style.color=scoreColor(media);
+  document.getElementById('det-semanas').innerHTML=c.avaliacoes.map((a,i)=>`<div class="week-pill ${i===c.avaliacoes.length-1?'active':''}" onclick="selecionarAv('${nome}',${i},this)">${a.entrega||'—'}${a.data?' · '+a.data:''}</div>`).join('');
+  renderDetalheAv(c,c.avaliacoes.length-1);
+  document.getElementById('det-historico').innerHTML=c.avaliacoes.map(a=>`<div class="hist-row"><div class="hist-label">${(a.entrega||'—').split(' ')[0]}</div><div class="hist-track"><div class="hist-fill" style="width:${a.nota}%;background:${scoreColor(a.nota)}22;color:${scoreColor(a.nota)};">${a.nota}</div></div></div>`).join('');
+  const baixas={};
+  c.avaliacoes.forEach(a=>{DIMS.forEach(d=>{if((a.scores[d.id]||0)<60)baixas[d.name]=(baixas[d.name]||0)+1;});});
+  const sorted=Object.entries(baixas).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  document.getElementById('det-padroes').innerHTML=sorted.length?sorted.map(([dim,count])=>`<div class="alert-item alert-neg" style="margin-bottom:8px;"><div style="color:var(--red);flex-shrink:0;">▲</div><div><div class="alert-text">Abaixo de 60 em <strong>${dim}</strong></div><div class="alert-dim">${count} avaliação(ões)</div></div></div>`).join(''):'<div style="font-size:13px;color:var(--text2);">Nenhum padrão crítico.</div>';
+  document.getElementById('det-lista-avaliacoes').innerHTML=c.avaliacoes.map((a,ai)=>{
+  const dimsHtml=DIMS.map(d=>{
+    const sc=a.scores[d.id]||0;
+    let obsRaw=(a.observacoes||{})[d.id]||{};
+    if(typeof obsRaw==='string'){try{obsRaw=JSON.parse(obsRaw);}catch(e){obsRaw={analise:obsRaw,plano:''};}}
+    const analise=typeof obsRaw==='object'?(obsRaw.analise||''):(obsRaw||'');
+    const plano=typeof obsRaw==='object'?(obsRaw.plano||''):'';
+    if(!analise&&!plano) return '';
+    return`<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div style="width:6px;height:6px;border-radius:50%;background:${d.color};flex-shrink:0;"></div>
+        <div style="font-size:12px;font-weight:500;flex:1;">${d.name}</div>
+        <div class="score-pill ${scorePillClass(sc)}" style="font-size:11px;">${sc}</div>
+      </div>
+      ${analise?`<div style="margin-bottom:6px;">
+        <div style="font-size:10px;font-family:var(--mono);color:${d.color};letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;">Análise</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.5;border-left:2px solid ${d.color};padding-left:8px;">${analise}</div>
+      </div>`:''}
+      ${plano?`<div>
+        <div style="font-size:10px;font-family:var(--mono);color:var(--amber);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;">Plano de ação</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.5;border-left:2px solid var(--amber);padding-left:8px;">${plano}</div>
+      </div>`:''}
+    </div>`;
+  }).join('');
+
+  // Checklist d9
+  const skill=D9_SKILLS[a.entrega];
+  const d9itens=a.d9_itens||{};
+  let d9Html='';
+  if(skill&&Object.keys(d9itens).length>0){
+    d9Html=`<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+      <div style="font-size:11px;font-family:var(--mono);color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">d9 · Qualidade técnica da entrega</div>
+      ${skill.map(bloco=>`
+        <div style="margin-bottom:10px;">
+          <div style="font-size:10px;font-family:var(--mono);color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;">${bloco.bloco}</div>
+          ${bloco.items.map(item=>{
+            const v=d9itens[item.id];
+            const val=v!==undefined?(typeof v==='object'?v.valor:v):null;
+            const icon=val===1?'✅':val===0.5?'⚠️':'❌';
+            const cor=val===1?'var(--green)':val===0.5?'var(--amber)':'var(--red)';
+            return`<div style="display:flex;gap:8px;align-items:flex-start;padding:4px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:12px;flex-shrink:0;">${icon}</span>
+              <span style="font-size:12px;color:var(--text2);">${item.id} — ${item.label}</span>
+            </div>`;
+          }).join('')}
+        </div>`).join('')}
+    </div>`;
+  }
+
+  const bodyId='av-body-'+a.id;
+  return`<div style="border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden;">
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg2);cursor:pointer;" onclick="toggleAvBody('${bodyId}')">
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:500;">${a.entrega||'—'}</div>
+        <div style="font-size:11px;color:var(--text2);">${a.cliente||'—'} · ${a.data||'—'}</div>
+      </div>
+      <div class="score-pill ${scorePillClass(a.nota)}">${a.nota}</div>
+      <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();pedirDelete(${a.id})">Excluir</button>
+      <span style="color:var(--text3);font-size:12px;" id="chev-${bodyId}">▼</span>
+    </div>
+    <div id="${bodyId}" style="display:none;padding:16px;background:var(--bg);border-top:1px solid var(--border);">
+      ${a.recomendacao?`<div style="margin-bottom:16px;padding:12px;background:var(--bg2);border-radius:8px;border-left:2px solid var(--accent);">
+        <div style="font-size:10px;font-family:var(--mono);color:var(--accent);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;">Recomendação geral</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6;">${a.recomendacao}</div>
+      </div>`:''}
+      ${dimsHtml||'<div style="font-size:12px;color:var(--text3);">Sem análise detalhada registrada.</div>'}
+      ${d9Html}
+    </div>
+  </div>`;
+}).join('');
+}
+function renderDetalheAv(c,idx){
+  const av=c.avaliacoes[idx];
+  document.getElementById('det-dims-bars').innerHTML=DIMS.map(d=>{const sc=av.scores[d.id]||0;return`<div class="dim-bar-wrap"><div class="dim-bar-label"><span style="color:${d.color}">${d.name}</span><span style="font-family:var(--mono);color:${scoreColor(sc)}">${sc}</span></div><div class="dim-bar-track"><div class="dim-bar-fill" style="width:${sc}%;background:${d.color};opacity:.6;"></div></div></div>`;}).join('');
+}
+function selecionarAv(nome,idx,el){document.querySelectorAll('.week-pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');const c=getConsultores().find(c=>c.nome===nome);if(c)renderDetalheAv(c,idx);}
+function fecharDetalhe(){document.getElementById('consultor-detalhe').style.display='none';document.getElementById('consultores-list').style.display='block';}
+function pedirDelete(id){deleteTargetId=id;document.getElementById('modal-delete').classList.add('show');}
+function fecharModalDelete(){deleteTargetId=null;document.getElementById('modal-delete').classList.remove('show');}
+async function confirmarDelete(){
+  if(!deleteTargetId) return;
+  showLoading('Excluindo...');fecharModalDelete();
+  await deletarDoDB(deleteTargetId);deleteTargetId=null;
+  await carregarDB();hideLoading();renderConsultoresList();showToast('Excluído.','amber');
+}
+
+// ══════════════════════════════════════════════
+// COMPARATIVO
+// ══════════════════════════════════════════════
+let filtroEntrega='';
+function getTipos(){const s=new Set();DB.avaliacoes.forEach(a=>{if(a.entrega)s.add(a.entrega);});return[...s].sort();}
+function renderComparativo(){
+  const consultores=getConsultores();
+  if(!consultores.length){document.getElementById('comp-ranking').innerHTML=`<div class="empty"><div class="empty-icon">⊞</div><div class="empty-title">Nenhum dado disponível</div></div>`;document.getElementById('comp-dims').innerHTML='';return;}
+  const tipos=getTipos();
+  if(!filtroEntrega||!tipos.includes(filtroEntrega))filtroEntrega=tipos[0]||'';
+  const filtroHTML=`<div style="margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-size:12px;color:var(--text2);">Comparar:</span>${tipos.map(t=>`<div class="week-pill ${t===filtroEntrega?'active':''}" onclick="setFiltro('${t}')">${t}</div>`).join('')}</div>`;
+  const cons=consultores.map((c,ci)=>{const avs=c.avaliacoes.filter(a=>a.entrega===filtroEntrega);if(!avs.length)return null;const media=Math.round(avs.reduce((s,a)=>s+a.nota,0)/avs.length);return{nome:c.nome,media,avs,color:COLORS[ci%COLORS.length],initials:c.nome.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()};}).filter(Boolean).sort((a,b)=>b.media-a.media);
+  if(!cons.length){document.getElementById('comp-ranking').innerHTML=filtroHTML+`<div style="font-size:13px;color:var(--text2);padding:20px 0;">Nenhum consultor avaliado nesta entrega.</div>`;document.getElementById('comp-dims').innerHTML='';return;}
+  document.getElementById('comp-ranking').innerHTML=filtroHTML+cons.map((c,i)=>`<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;"><div style="font-family:var(--mono);font-size:12px;color:var(--text3);width:20px;">0${i+1}</div><div class="avatar" style="background:${c.color}22;color:${c.color};width:34px;height:34px;font-size:13px;">${c.initials}</div><div style="flex:1;"><div style="font-size:13px;font-weight:500;margin-bottom:4px;">${c.nome}</div><div style="font-size:11px;color:var(--text3);margin-bottom:4px;">${c.avs.length} avaliação(ões)</div><div style="height:6px;background:var(--bg3);border-radius:99px;"><div style="width:${c.media}%;height:6px;border-radius:99px;background:${c.color};opacity:.7;"></div></div></div><div class="score-pill ${scorePillClass(c.media)}">${c.media}</div></div>`).join('');
+  document.getElementById('comp-dims').innerHTML=`<div style="font-size:12px;color:var(--text2);margin-bottom:14px;">Média em <strong style="color:var(--text)">${filtroEntrega}</strong><span style="margin-left:10px;display:inline-flex;gap:12px;">${cons.map(c=>`<span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:2px;background:${c.color};display:inline-block;"></span><span style="font-size:11px;">${c.nome}</span></span>`).join('')}</span></div>${DIMS.map(d=>{const bars=cons.map(c=>{const avg=Math.round(c.avs.reduce((s,a)=>s+(a.scores[d.id]||0),0)/c.avs.length);return{avg,color:c.color};});return`<div class="compare-bar"><div class="compare-dim-label" style="color:${d.color}">${d.name}</div><div class="compare-bars">${bars.map(b=>`<div class="compare-track"><div class="compare-fill" style="width:${b.avg}%;background:${b.color};opacity:.7;"></div></div>`).join('')}</div><div class="compare-score">${bars.map(b=>b.avg).join(' / ')}</div></div>`;}).join('')}`;
+}
+function setFiltro(t){filtroEntrega=t;renderComparativo();}
+
+// ══════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════
+function scoreColor(n){return n>=85?'#2dd4a0':n>=70?'#f5a623':'#f0645a';}
+function scorePillClass(n){return n>=85?'score-green':n>=70?'score-amber':'score-red';}
+function showLoading(msg){document.getElementById('loading-text').textContent=msg||'Carregando...';document.getElementById('loading').classList.add('show');}
+function hideLoading(){document.getElementById('loading').classList.remove('show');}
+let toastTimer;
+function showToast(msg,type){const t=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;document.getElementById('toast-dot').style.background=type==='green'?'var(--green)':type==='red'?'var(--red)':type==='amber'?'var(--amber)':'var(--blue)';t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3000);}
+</script>
+</body>
+</html>
